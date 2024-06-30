@@ -8,5 +8,6 @@ export interface Instance {
   id: ID;
   members: Map<Member.ID, Member.Instance>;
   admin: Member.Instance;
+  password: string;
   data: any;
 }

@@ -26,16 +26,24 @@ class RoomManager {
   //////////////////////////////////////////////////////////
 
   /**
+   * Return all the rooms
+   * @returns an array of room
+   */  
+  getAllRooms(): Room.Instance[] {
+    return [... this._rooms.values()];
+  }
+
+  /**
    * Finds the room based on roomID
    * @param roomID
-   * @returns a room if found otherwise null
+   * @returns a room if found otherwise undefined
    */
   getRoomByID(roomID: Room.ID): Room.Instance {
     const retrievedRoom = this._rooms.get(roomID);
 
-    if (!retrievedRoom) {
-      throw Error(`No room found with id: ${roomID}`);
-    }
+    // if (!retrievedRoom) {
+    //   throw Error(`No room found with id: ${roomID}`);
+    // }
 
     return retrievedRoom;
   }
@@ -99,11 +107,12 @@ class RoomManager {
    * @param roomID
    * @returns a room instance
    */
-  private createRoom(roomID: Room.ID, admin: Member.Instance): Room.Instance {
+  private createRoom(roomID: Room.ID, admin: Member.Instance, password: string): Room.Instance {
     const newRoom = {
       id: roomID,
       members: new Map<Member.ID, Member.Instance>(),
       admin,
+      password,
       data: null
     };
 
@@ -120,10 +129,12 @@ class RoomManager {
    * become the admin of the room.
    * @param memberToAdd member(s) to add
    * @param roomID ID of the room
+   * @param password password of the room
    */
   addMemberToRoom(
     memberToAdd: Member.Instance | Member.Instance[],
-    roomID: Room.ID
+    roomID: Room.ID,
+    password: string
   ): void {
     let member: Member.Instance[] = [];
     let roomToAddMemberTo = this.getRoomByID(roomID);
@@ -144,7 +155,11 @@ class RoomManager {
      * the room
      */
     if (!roomToAddMemberTo) {
-      roomToAddMemberTo = this.createRoom(roomID, member[0]);
+      roomToAddMemberTo = this.createRoom(roomID, member[0], password);
+    } else {
+      // check that the password correspond to the one on the room
+      if (roomToAddMemberTo.password !== password)
+        throw Error("Can't enter the room: password invalid");
     }
 
     /**

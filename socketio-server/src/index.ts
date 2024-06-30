@@ -5,7 +5,11 @@ import RoomManager from './RoomManager';
 
 const app = express();
 const server = createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+  }
+});
 
 const PORT = 3020;
 
@@ -19,19 +23,42 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
   console.log('a user connected');
 
-  // Socket requests to be added to a room
-  socket.on("joinRoom", ({ walletAddress, name, roomID }) => {
+  // Socket request to create a room
+  socket.on("createMember", ({ walletAddress }) => {
     /**
      * This function adds the member to an interal list
      * of members and returns the created member
      */
-    const newMember = manager.createMember(walletAddress, name, socket);
+    const newMember = manager.createMember(walletAddress, 'test', socket);
+    console.log("New member created:", newMember.uid, newMember.name);
+  });
+
+  // Socket request to create a room
+  // for the moment the password can be empty
+  socket.on("createNewRoom", (password: string) => {
+    const member = manager.getMemberByConnectionID(socket.id);
 
     /**
-     * Add him to a room. If a room doesn't exist
-     * yet it will be created 
+     * Create a new room with uid base on the wallet of admin
      */
-    manager.addMemberToRoom(newMember, roomID);
+    const roomId = member.uid + '000' + Math.floor(Math.random() * 100) + 1;
+    manager.addMemberToRoom(member, roomId, password);
+    const room = manager.getRoomByID(roomId);
+    console.log('Room created:', room);
+    socket.emit('roomCreated', roomId);
+  });
+  
+  // Socket requests to be added to a room
+  socket.on("joinRoom", ({ roomID, password }) => {
+    const member = manager.getMemberByConnectionID(socket.id);
+
+    try {
+      manager.addMemberToRoom(member, roomID, password);
+      socket.emit('roomJoined', roomID);
+    } catch (e) {
+      console.log("ERROR:\n", e);
+      socket.emit('error', e);
+    }
   });
 
   // Socket requests to leave a room
