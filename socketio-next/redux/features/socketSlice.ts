@@ -31,27 +31,34 @@ const socketSlice = createSlice({
     connectionLost: (state) => {
       state.isConnected = false;
     },
-    joinRoom: (state, action: RoomAction) => {
-      // After the required room is joined through middleware, we manage state here!
-      let rooms = action.payload.rooms;
-      state.rooms = state.rooms.concat(room);
+
+    createRoom: (state, action: RoomAction) => {
+      // not store for the request, waiting for the server to confirm before joining
+      return;
+    },    
+    joinRoom: (state, action: PayloadAction<{room: string, password: string}>) => {
+      // not store for the request, waiting for the server to confirm before joining
       return;
     },
     leaveRoom: (state, action: RoomAction) => {
-      // After the required room is joined through middleware, we manage state here!
-      let rooms = action.payload.rooms;
+      // not store for the request, waiting for the server to confirm before leaving
+      return;
+    },
+
+    roomJoined: (state, action: PayloadAction<{room: string, password: string}>) => {
+      // After the socket receive the event from the server in the middleware
+      state.rooms = state.rooms.concat(action.payload.room);
+      return;
+    },
+    roomLeaved: (state) => {
+      // After the socket receive the event from the server in the middleware
       state.rooms = [];
       return;
-    },    
+    },
   },
 });
 
 // Don't have to define actions, they are automatically generated
-export const {
-  initSocket,
-  connectionEstablished,
-  connectionLost,
-  joinRoom
-} = socketSlice.actions;
+export const socketActions = socketSlice.actions;
 // Export the reducer for this slice
 export default socketSlice.reducer;

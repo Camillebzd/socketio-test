@@ -1,28 +1,23 @@
 import { Middleware } from "redux";
 // Actions
-import {
-  connectionEstablished,
-  joinRoom,
-  leaveRoom,
-  initSocket,
-  connectionLost,
-} from "./socketSlice";
-import { setPrice } from "@/data/Features/price/priceSlice";
+import { socketActions } from "./socketSlice";
 // Socket Factory
 import SocketFactory from "../../sockets/SocketFactory";
 import type { SocketInterface } from "../../sockets/SocketFactory";
-// Types
-import { IPriceMessage } from "@/types/socket";
 
 enum SocketEvent {
+  // Native events
   Connect = "connect",
   Disconnect = "disconnect",
   // Emit events
-  JoinRoom = "join-room",
-  LeaveRoom = "leave-room",
+  CreateRoom = "createRoom",
+  JoinRoom = "joinRoom",
+  LeaveRoom = "leaveRoom",
   // On events
   Error = "err",
-  Price = "price",
+  RoomCreated = "roomCreated",
+  RoomJoined = "roomJoined",
+  RoomLeaved = "roomLeaved"
 }
 
 const socketMiddleware: Middleware = (store) => {
@@ -30,14 +25,15 @@ const socketMiddleware: Middleware = (store) => {
 
   return (next) => (action) => {
     // Middleware logic for the `initSocket` action
-    if (initSocket.match(action)) {
+    if (socketActions.initSocket.match(action)) {
       if (!socket && typeof window !== "undefined") {
         // Client-side-only code
         // Create/ Get Socket Socket
         socket = SocketFactory.create();
 
         socket.socket.on(SocketEvent.Connect, () => {
-          store.dispatch(connectionEstablished());
+          store.dispatch(socketActions.connectionEstablished());
+          console.log("socket connected.");
         });
 
         // handle all Error events
@@ -47,27 +43,48 @@ const socketMiddleware: Middleware = (store) => {
 
         // Handle disconnect event
         socket.socket.on(SocketEvent.Disconnect, (reason) => {
-          store.dispatch(connectionLost());
+          store.dispatch(socketActions.connectionLost());
+          console.log("socket disconnected.");
         });
 
-        // Handle all price events
-        socket.socket.on(SocketEvent.Price, (priceMessage: IPriceMessage) => {
-          store.dispatch(setPrice(priceMessage.value));
+        // Handle the creation of a room
+        socket.socket.on(SocketEvent.RoomCreated, (roomId) => {
+          store.dispatch(socketActions.roomJoined(roomId));
+          console.log("Room created:", roomId);
+        });
+
+        // Handle the joining of a room
+        socket.socket.on(SocketEvent.RoomJoined, (roomId) => {
+          store.dispatch(socketActions.roomJoined(roomId));
+          console.log("Room joined:", roomId);
+        });
+
+        // Handle the leaving of a room
+        socket.socket.on(SocketEvent.RoomLeaved, (roomId) => {
+          store.dispatch(socketActions.roomLeaved(roomId));
+          console.log("Room joined:", roomId);
         });
       }
     }
 
+    // handle create a room action
+    if (socketActions.createRoom.match(action) && socket) {
+      // Ask to create a room to the server
+      socket.socket.emit(SocketEvent.JoinRoom);
+    }
+
     // handle the joinRoom action
-    if (joinRoom.match(action) && socket) {
-      let room = action.payload.room;
+    if (socketActions.joinRoom.match(action) && socket) {
+      const room = action.payload.room;
+      const password = action.payload.password;
       // Join room
-      socket.socket.emit(SocketEvent.JoinRoom, room);
+      socket.socket.emit(SocketEvent.JoinRoom, room, password);
       // Then Pass on to the next middleware to handle state
       // ...
     }
 
     // handle leaveRoom action
-    if (leaveRoom.match(action) && socket) {
+    if (socketActions.leaveRoom.match(action) && socket) {
       let room = action.payload.room;
       socket.socket.emit(SocketEvent.LeaveRoom, room);
       // Then Pass on to the next middleware to handle state

@@ -23,7 +23,7 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
   console.log('a user connected');
 
-  // Socket request to create a room
+  // Socket request to create a member (this is done after a user connect his wallets)
   socket.on("createMember", ({ walletAddress }) => {
     /**
      * This function adds the member to an interal list
