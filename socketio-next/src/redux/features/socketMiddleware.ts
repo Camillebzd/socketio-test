@@ -1,6 +1,6 @@
 import { Middleware } from "redux";
 // Actions
-import { socketActions } from "./socketSlice";
+import { Room, socketActions } from "./socketSlice";
 // Socket Factory
 import SocketFactory from "@/sockets/SocketFactory";
 import type { SocketInterface } from "@/sockets/SocketFactory";
@@ -52,15 +52,15 @@ const socketMiddleware: Middleware = (store) => {
         });
 
         // Handle the creation of a room
-        socket.socket.on(SocketEvent.RoomCreated, (roomId) => {
-          store.dispatch(socketActions.roomJoined({room: roomId, password: ""})); // TODO add password support
-          console.log("Room created:", roomId);
+        socket.socket.on(SocketEvent.RoomCreated, (room: Room) => {
+          store.dispatch(socketActions.roomJoined(room));
+          console.log("Room created:", room.id);
         });
 
         // Handle the joining of a room
-        socket.socket.on(SocketEvent.RoomJoined, (roomId) => {
-          store.dispatch(socketActions.roomJoined({room: roomId, password: ""})); // TODO add password support
-          console.log("Room joined:", roomId);
+        socket.socket.on(SocketEvent.RoomJoined, (room: Room) => {
+          store.dispatch(socketActions.roomJoined(room));
+          console.log("Room joined:", room.id);
         });
 
         // Handle the leaving of a room
@@ -84,10 +84,10 @@ const socketMiddleware: Middleware = (store) => {
 
     // handle the joinRoom action
     if (socketActions.joinRoom.match(action) && socket) {
-      const room = action.payload.room;
+      const roomId = action.payload.id;
       const password = action.payload.password;
       // Join room
-      socket.socket.emit(SocketEvent.JoinRoom, {roomID: room, password});
+      socket.socket.emit(SocketEvent.JoinRoom, {roomId, password});
       // Then Pass on to the next middleware to handle state
       // ...
     }

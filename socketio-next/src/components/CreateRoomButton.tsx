@@ -28,7 +28,7 @@ const CreateRoomButton = () => {
   const goToRoomPageButton = () => (
     <button
       disabled={room == undefined}
-      onClick={() => router.push(`/room/${room}`)}
+      onClick={() => router.push(`/room/${room.id}`)}
       className={styles.card}
     >
       Go to room

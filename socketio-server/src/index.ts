@@ -43,24 +43,20 @@ io.on('connection', (socket) => {
      */
     const roomId = member.uid + '000' + Math.floor(Math.random() * 100) + 1;
     manager.addMemberToRoom(member, roomId, password);
-    const room = manager.getRoomByID(roomId);
-    console.log('Room created:', room);
-    socket.emit('roomCreated', roomId);
+    console.log('Room created:', {id: roomId, password});
+    socket.emit('roomCreated', {id: roomId, password});
   });
   
   // Socket requests to be added to a room
-  socket.on("joinRoom", ({ roomID, password }) => {
+  socket.on("joinRoom", ({ roomId, password }) => {
     const member = manager.getMemberByConnectionID(socket.id);
-    console.log('Want to join a room');
-    console.log('room id:', roomID);
-    console.log('password:', password);
 
     try {
       // check if room exist first
-      if (!manager.getRoomByID(roomID))
+      if (!manager.getRoomByID(roomId))
         throw Error("Can't join room: room doesn't exist.");
-      manager.addMemberToRoom(member, roomID, password);
-      socket.emit('roomJoined', roomID);
+      manager.addMemberToRoom(member, roomId, password);
+      socket.emit('roomJoined', {id: roomId, password});
     } catch (e) {
       console.log(e);
       socket.emit('error', e);
@@ -68,10 +64,10 @@ io.on('connection', (socket) => {
   });
 
   // Socket requests to leave a room
-  socket.on("leaveRoom", ({ walletAddress, roomID }) => {
+  socket.on("leaveRoom", ({ walletAddress, roomId }) => {
     const member = manager.getMemberByID(walletAddress);
 
-    manager.removeMemberFromRoom(member, roomID);
+    manager.removeMemberFromRoom(member, roomId);
   });
 });
 

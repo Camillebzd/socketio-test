@@ -2,9 +2,14 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 
+export type Room = {
+  id: string,
+  password: string
+}
+
 export interface SocketState {
   isConnected: boolean;
-  rooms: string[];
+  rooms: Room[];
 }
 
 const initialState: SocketState = {
@@ -36,7 +41,7 @@ const socketSlice = createSlice({
       // not store for the request, waiting for the server to confirm before joining
       return;
     },    
-    joinRoom: (state, action: PayloadAction<{room: string, password: string}>) => {
+    joinRoom: (state, action: PayloadAction<Room>) => {
       // not store for the request, waiting for the server to confirm before joining
       return;
     },
@@ -45,9 +50,9 @@ const socketSlice = createSlice({
       return;
     },
 
-    roomJoined: (state, action: PayloadAction<{room: string, password: string}>) => {
+    roomJoined: (state, action: PayloadAction<Room>) => {
       // After the socket receive the event from the server in the middleware
-      state.rooms = state.rooms.concat(action.payload.room);
+      state.rooms = state.rooms.concat(action.payload);
       return;
     },
     roomLeaved: (state) => {

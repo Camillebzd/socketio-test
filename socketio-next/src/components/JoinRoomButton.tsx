@@ -32,14 +32,14 @@ const JoinRoomButton = () => {
   const joinRoom = () => {
     if (roomToJoin == "")
       return;
-    dispatch(socketActions.joinRoom({ room: roomToJoin, password: password }));
+    dispatch(socketActions.joinRoom({ id: roomToJoin, password: password }));
     onClose();
   };
 
   const goToRoomPageButton = () => (
     <button
       disabled={room == undefined}
-      onClick={() => router.push(`/room/${room}`)}
+      onClick={() => router.push(`/room/${room.id}`)}
       className={styles.card}
     >
       Go to room
