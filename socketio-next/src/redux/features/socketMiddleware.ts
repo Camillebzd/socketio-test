@@ -2,14 +2,16 @@ import { Middleware } from "redux";
 // Actions
 import { socketActions } from "./socketSlice";
 // Socket Factory
-import SocketFactory from "../../sockets/SocketFactory";
-import type { SocketInterface } from "../../sockets/SocketFactory";
+import SocketFactory from "@/sockets/SocketFactory";
+import type { SocketInterface } from "@/sockets/SocketFactory";
+import { connect } from "./authSlice";
 
 enum SocketEvent {
   // Native events
   Connect = "connect",
   Disconnect = "disconnect",
   // Emit events
+  CreateMember = "createMember",
   CreateRoom = "createRoom",
   JoinRoom = "joinRoom",
   LeaveRoom = "leaveRoom",
@@ -65,6 +67,12 @@ const socketMiddleware: Middleware = (store) => {
           console.log("Room joined:", roomId);
         });
       }
+    }
+
+    // Listen for the user to connect using the auth Slice to create the user on the server
+    if (connect.match(action) && socket) {
+      console.log('Allo', action.payload);
+      socket.socket.emit(SocketEvent.CreateMember, action.payload);
     }
 
     // handle create a room action

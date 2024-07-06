@@ -3,43 +3,34 @@
 import Image from "next/image";
 import styles from "./page.module.css";
 import { useEffect, useState } from "react";
-import useSocket from "../../hooks/useSocket";
 import { useRouter } from "next/navigation";
-import useUserId from "../../hooks/useUserId";
+import useUserId from "../hooks/useUserId";
+import { connect, disconnect } from "@/redux/features/authSlice";
+import { socketActions } from "@/redux/features/socketSlice";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 
 export default function Home() {
   const [roomList, setRoomList] = useState<any[]>([]);
   const [roomPasswordToCreate, setRoomPassword] = useState("");
   const userId = useUserId();
-  const socket = useSocket('http://localhost:3020', userId.toString());
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const isConnected = useAppSelector((state) => state.socketReducer.isConnected);
+
+  useEffect(() => {
+    // init the socket
+    dispatch(socketActions.initSocket());
+  }, []);
 
   // Listen events on the socket
   useEffect(() => {
-    if (socket) {
-      socket.on('roomList', (rooms) => {
-        console.log('Room list:', rooms);
-        setRoomList(rooms);
-      });
-      socket.on('roomCreated', (roomId) => {
-        console.log('Room created:', roomId);
-        router.push(`/room/${roomId}`);
-      });
-    }
+    // router.push(`/room/${roomId}`);
 
-    return () => {
-      if (socket) {
-        socket.off('roomList');
-        socket.off('roomCreated');
-      }
-    };
-  }, [socket]);
+    if (userId && isConnected) {
+      dispatch(connect(`0x${userId.toString()}`));
 
-  const createNewRoom = () => {
-    if (socket) {
-      socket.emit('createNewRoom');
     }
-  };
+  }, [userId, isConnected]);
 
   return (
     <main className={styles.main}>
