@@ -8,12 +8,12 @@ import useUserId from "../hooks/useUserId";
 import { connect, disconnect } from "@/redux/features/authSlice";
 import { socketActions } from "@/redux/features/socketSlice";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import CreateRoomButton from "@/components/CreateRoomButton";
+import JoinRoomButton from "@/components/JoinRoomButton";
 
 export default function Home() {
   const [roomList, setRoomList] = useState<any[]>([]);
-  const [roomPasswordToCreate, setRoomPassword] = useState("");
   const userId = useUserId();
-  const router = useRouter();
   const dispatch = useAppDispatch();
   const isConnected = useAppSelector((state) => state.socketReducer.isConnected);
 
@@ -24,11 +24,8 @@ export default function Home() {
 
   // Listen events on the socket
   useEffect(() => {
-    // router.push(`/room/${roomId}`);
-
     if (userId && isConnected) {
       dispatch(connect(`0x${userId.toString()}`));
-
     }
   }, [userId, isConnected]);
 
@@ -64,12 +61,10 @@ export default function Home() {
       </div>
 
       <div className={styles.grid}>
+        
+        <CreateRoomButton />
 
-        <button
-          className={styles.card}
-        >
-          Join a room
-        </button>
+        <JoinRoomButton />
 
         {/* <a
           href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"

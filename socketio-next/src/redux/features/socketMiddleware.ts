@@ -12,7 +12,7 @@ enum SocketEvent {
   Disconnect = "disconnect",
   // Emit events
   CreateMember = "createMember",
-  CreateRoom = "createRoom",
+  CreateNewRoom = "createNewRoom",
   JoinRoom = "joinRoom",
   LeaveRoom = "leaveRoom",
   // On events
@@ -41,6 +41,8 @@ const socketMiddleware: Middleware = (store) => {
         // handle all Error events
         socket.socket.on(SocketEvent.Error, (message) => {
           console.error(message);
+          // TODO dispatch errors and create an error provider at
+          // the route of the project to handle them
         });
 
         // Handle disconnect event
@@ -51,34 +53,33 @@ const socketMiddleware: Middleware = (store) => {
 
         // Handle the creation of a room
         socket.socket.on(SocketEvent.RoomCreated, (roomId) => {
-          store.dispatch(socketActions.roomJoined(roomId));
+          store.dispatch(socketActions.roomJoined({room: roomId, password: ""})); // TODO add password support
           console.log("Room created:", roomId);
         });
 
         // Handle the joining of a room
         socket.socket.on(SocketEvent.RoomJoined, (roomId) => {
-          store.dispatch(socketActions.roomJoined(roomId));
+          store.dispatch(socketActions.roomJoined({room: roomId, password: ""})); // TODO add password support
           console.log("Room joined:", roomId);
         });
 
         // Handle the leaving of a room
         socket.socket.on(SocketEvent.RoomLeaved, (roomId) => {
           store.dispatch(socketActions.roomLeaved(roomId));
-          console.log("Room joined:", roomId);
+          console.log("Room leaved:", roomId);
         });
       }
     }
 
     // Listen for the user to connect using the auth Slice to create the user on the server
     if (connect.match(action) && socket) {
-      console.log('Allo', action.payload);
       socket.socket.emit(SocketEvent.CreateMember, action.payload);
     }
 
     // handle create a room action
-    if (socketActions.createRoom.match(action) && socket) {
+    if (socketActions.createNewRoom.match(action) && socket) {
       // Ask to create a room to the server
-      socket.socket.emit(SocketEvent.JoinRoom);
+      socket.socket.emit(SocketEvent.CreateNewRoom, action.payload.password);
     }
 
     // handle the joinRoom action
@@ -86,7 +87,7 @@ const socketMiddleware: Middleware = (store) => {
       const room = action.payload.room;
       const password = action.payload.password;
       // Join room
-      socket.socket.emit(SocketEvent.JoinRoom, room, password);
+      socket.socket.emit(SocketEvent.JoinRoom, {roomID: room, password});
       // Then Pass on to the next middleware to handle state
       // ...
     }

@@ -32,7 +32,7 @@ const socketSlice = createSlice({
       state.isConnected = false;
     },
 
-    createRoom: (state, action: RoomAction) => {
+    createNewRoom: (state, action: PayloadAction<{password: string}>) => {
       // not store for the request, waiting for the server to confirm before joining
       return;
     },    

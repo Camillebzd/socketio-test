@@ -51,12 +51,18 @@ io.on('connection', (socket) => {
   // Socket requests to be added to a room
   socket.on("joinRoom", ({ roomID, password }) => {
     const member = manager.getMemberByConnectionID(socket.id);
+    console.log('Want to join a room');
+    console.log('room id:', roomID);
+    console.log('password:', password);
 
     try {
+      // check if room exist first
+      if (!manager.getRoomByID(roomID))
+        throw Error("Can't join room: room doesn't exist.");
       manager.addMemberToRoom(member, roomID, password);
       socket.emit('roomJoined', roomID);
     } catch (e) {
-      console.log("ERROR:\n", e);
+      console.log(e);
       socket.emit('error', e);
     }
   });
