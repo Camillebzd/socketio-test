@@ -2,6 +2,8 @@ import express from 'express';
 import { createServer } from 'node:http';
 import { Server } from 'socket.io';
 import RoomManager from './RoomManager';
+import { RoomId } from './@types/Room';
+import { Skill } from './@types/Skill';
 
 const app = express();
 const server = createServer(app);
@@ -68,6 +70,37 @@ io.on('connection', (socket) => {
     const member = manager.getMemberByID(walletAddress);
 
     manager.removeMemberFromRoom(member, roomId);
+  });
+
+  // User enters in the fight
+  // Check if he is in the room before
+  // listening to his spells
+  socket.on("enterFight", (roomId: RoomId) => {
+    // check if user is in the room
+    const member = manager.getMemberByConnectionID(socket.id)
+    const room = manager.getRoomByID(member.roomId);
+    if (member.roomId == roomId) {
+      // user is in the fight page
+    } else {
+      socket.emit('error', 'You are not in this room.');
+      return;
+    }
+    // listen for futur spell selection
+    socket.on("selectSkill", (skill: Skill) => {
+      room.setSkill(member.uid, skill);
+      // broadcast the skill to all in the room
+      let skillData= {};
+      skillData[member.uid] = skill;
+      io.to(room.id).emit("skillSelected", skillData);
+    });
+    // broadcast all the members in the room, for the moment only members
+    const members = room.getAllMembers(true);
+    console.log('all entities:', members);
+    io.to(room.id).emit("allEntities", members);
+    // broadcast all the spell already selected
+    const skills = room.getAllSkills();
+    console.log('all skills:', skills);
+    io.to(room.id).emit("allSkillsSelected", skills);
   });
 });
 

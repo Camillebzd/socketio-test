@@ -2,13 +2,13 @@
 
 import styles from "@/app/page.module.css";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { socketActions } from "@/redux/features/socketSlice";
+import { DEFAULT_ROOM_ID, socketActions } from "@/redux/features/socketSlice";
 import { useRouter } from "next/navigation";
 
 const CreateRoomButton = () => {
   const dispatch = useAppDispatch();
   const isConnected = useAppSelector((state) => state.socketReducer.isConnected);
-  const room = useAppSelector((state) => state.socketReducer.rooms[0]);
+  const room = useAppSelector((state) => state.socketReducer.room);
   const router = useRouter();
 
   const createNewRoom = () => {
@@ -27,7 +27,7 @@ const CreateRoomButton = () => {
 
   const goToRoomPageButton = () => (
     <button
-      disabled={room == undefined}
+      disabled={room.id == DEFAULT_ROOM_ID}
       onClick={() => router.push(`/room/${room.id}`)}
       className={styles.card}
     >
@@ -37,7 +37,7 @@ const CreateRoomButton = () => {
 
   return (
     <div>
-      {room ? goToRoomPageButton() : createRoomButton()}
+      {room.id !== DEFAULT_ROOM_ID ? goToRoomPageButton() : createRoomButton()}
     </div>
   );
 }

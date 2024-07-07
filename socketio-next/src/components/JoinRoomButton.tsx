@@ -2,7 +2,7 @@
 
 import styles from "@/app/page.module.css";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { socketActions } from "@/redux/features/socketSlice";
+import { DEFAULT_ROOM_ID, socketActions } from "@/redux/features/socketSlice";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button, Input, useDisclosure } from "@chakra-ui/react";
@@ -25,7 +25,7 @@ const JoinRoomButton = () => {
   const [password, setPassword] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [show, setShow] = useState(false);
-  const room = useAppSelector((state) => state.socketReducer.rooms[0]);
+  const room = useAppSelector((state) => state.socketReducer.room);
 
   const toogleShow = () => setShow(!show);
 
@@ -38,7 +38,7 @@ const JoinRoomButton = () => {
 
   const goToRoomPageButton = () => (
     <button
-      disabled={room == undefined}
+      disabled={room.id == DEFAULT_ROOM_ID}
       onClick={() => router.push(`/room/${room.id}`)}
       className={styles.card}
     >
@@ -57,7 +57,7 @@ const JoinRoomButton = () => {
 
   return (
     <div>
-      {room ? goToRoomPageButton() : joinRoomButton()}
+      {room.id !== DEFAULT_ROOM_ID ? goToRoomPageButton() : joinRoomButton()}
 
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
