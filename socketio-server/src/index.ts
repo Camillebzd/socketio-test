@@ -100,7 +100,7 @@ io.on('connection', (socket) => {
     // broadcast all the spell already selected
     const skills = room.getAllSkills();
     console.log('all skills:', skills);
-    io.to(room.id).emit("allSkillsSelected", skills);
+    socket.emit("allSkillsSelected", skills);
   });
 });
 

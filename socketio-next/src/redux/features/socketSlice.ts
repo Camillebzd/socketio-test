@@ -88,7 +88,7 @@ const socketSlice = createSlice({
     skillSelected: (state, action: PayloadAction<{ [id: Member.ID]: Skill }>) => {
       // After the socket receive the event from the server in the middleware
       // state.room.skillsSelected.set(action.payload.member, action.payload.skill);
-      state.room.skillsSelected[action.payload.member] = action.payload.skill;
+      state.room.skillsSelected = {... state.room.skillsSelected, ...action.payload};
       return;
     },
     allSkillsSelected: (state, action: PayloadAction<{ [id: Member.ID]: Skill }>) => {
